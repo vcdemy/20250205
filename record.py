@@ -12,6 +12,7 @@ cap = cv2.VideoCapture(0)
 # 控制變數
 recording = False
 output_file = "hand_landmarks.txt"
+label = "XYZ"
 
 # 初始化 Hand 模型
 with mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5) as hands:
@@ -43,12 +44,26 @@ with mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5) a
                 # 如果開始錄製，儲存關鍵點座標
                 if recording:
                     with open(output_file, "a") as f:
-                        f.write(f"Timestamp: {time.time()}\n")
+                        f.write(f"{label} ")
                         for id, lm in enumerate(hand_landmarks.landmark):
-                            f.write(f"Landmark {id}: {lm.x}, {lm.y}, {lm.z}\n")
-                            print(f"Landmark {id}: {lm.x}, {lm.y}, {lm.z}\n")
+                            f.write(f"{lm.x} {lm.y} {lm.z} ")
                         f.write("\n")
 
+        # 設定字型、大小和顏色
+        font = cv2.FONT_HERSHEY_SIMPLEX    # 字型
+        font_scale = 1.5                   # 字體大小
+        color = (255, 255, 255)            # 文字顏色（白色）
+        thickness = 2                      # 線條粗細
+
+        # 取得文字尺寸（用來計算左下角位置）
+        (text_width, text_height), baseline = cv2.getTextSize(label, font, font_scale, thickness)
+
+        # 設定文字位置在圖片的左下角
+        x = 10                            # 左邊留一點邊距
+        y = image.shape[0] - 10           # 靠近圖片底部，預留 10px 邊距
+
+        # 將文字印到圖片上
+        cv2.putText(image, label, (x, y), font, font_scale, color, thickness, cv2.LINE_AA)
         # 顯示影像
         cv2.imshow('Hand Tracking', image)
 
@@ -62,6 +77,8 @@ with mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5) a
                 print("開始錄製手部關鍵點...")
             else:
                 print("停止錄製。")
+        elif 65 <= key <= 90 or 97 <= key <= 122:
+            label = chr(key)
 
 # 釋放資源
 cap.release()
